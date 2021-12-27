@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ze Gangsta Syncer</title>
+    <style>
+      textarea {
+        width: 300px;
+        height: 100px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="fileInput" type="file" accept="video/*" /><br />
+    <video controls autoplay></video><br />
+    <textarea id="status">===Status===</textarea>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+    </script>
+
+    <script type="text/javascript">
+      "use strict";
+
+      var ignoreNextAction = false; // used so we don't fire messages when applying actions others did
+
+      function loadFile(event) {
+        if (!this.files) {
+          return;
+        }
+        var file = this.files[0];
+        var type = file.type;
+        var videoNode = document.querySelector("video");
+
+        var URL = window.URL || window.webkitURL;
+        var fileURL = URL.createObjectURL(file);
+        videoNode.src = fileURL;
+
+        video.pause();
+      }
+
+      function sendMessage(message) {
+        socket.emit("action", message);
+      }
+
+      function addStatus(message) {
+        document.getElementById('status').value = message + '\n' + document.getElementById('status').value;
+      }
+
+      var inputNode = document.querySelector("#fileInput");
+      inputNode.addEventListener("change", loadFile, false);
+
+      const video = document.querySelector("video");
+      video.onplay = (event) => {
+        if (ignoreNextAction) {
+          ignoreNextAction = false;
+          return;
+        }
+
+        const time = event.target.currentTime;
+        sendMessage({
+          action: "play",
+          time: time,
+        });
+      };
+
+      video.onpause = (event) => {
+        if (ignoreNextAction) {
+          ignoreNextAction = false;
+          return;
+        }
+
+        const time = event.target.currentTime;
+        sendMessage({
+          action: "pause",
+          time: time,
+        });
+      };
+
+      video.onseeked = (event) => {
+        if (ignoreNextAction) {
+          ignoreNextAction = false;
+          return;
+        }
+
+        const time = event.target.currentTime;
+        sendMessage({
+          action: "seek",
+          time: time,
+        });
+      };
+
+      socket.on("action", function (msg) {
+        switch (msg.action) {
+          case 'seek':
+            ignoreNextAction = true;
+            video.currentTime = msg.time;
+            addStatus(`${msg.person} seeked to ${msg.time}`);
+            break;
+          case 'play':
+            ignoreNextAction = true;
+            video.currentTime = msg.time;
+            video.play();
+            addStatus(`${msg.person} played at ${msg.time}`);
+            break;
+          case 'pause':
+            ignoreNextAction = true;
+            video.currentTime = msg.time;
+            video.pause();
+            addStatus(`${msg.person} paused at ${msg.time}`);
+            break;
+          default:
+            console.log("unknown message type: ", msg)
+        }
+      });
+    </script>
+  </body>
+</html>
