@@ -11,13 +11,7 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/movie', (req, res) => {
-    res.sendFile(__dirname + '/movie.mp4');
-});
-
-app.get('/testmovie', (req, res) => {
-    res.sendFile(__dirname + '/testmovie.mp4');
-});
+app.use(express.static('.'))
 
 io.on('connection', (socket) => {
     socket.on('action', msg => {
