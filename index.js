@@ -15,6 +15,10 @@ app.get('/movie', (req, res) => {
     res.sendFile(__dirname + '/movie.mp4');
 });
 
+app.get('/testmovie', (req, res) => {
+    res.sendFile(__dirname + '/testmovie.mp4');
+});
+
 io.on('connection', (socket) => {
     socket.on('action', msg => {
         socket.broadcast.emit('action', msg);
