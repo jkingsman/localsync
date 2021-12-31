@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
+var serveIndex = require('serve-index')
 const {
     Server
 } = require("socket.io");
@@ -12,6 +13,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.static('.'))
+app.use('/movies', express.static('/movies'), serveIndex('movies', {'icons': true}))
 
 io.on('connection', (socket) => {
     socket.on('action', msg => {
